@@ -33,6 +33,9 @@ namespace ECommerce.Infrastructure.Repositories
         public async Task DeleteAsync(int id)
         {
             var product = await _Context.Products.FindAsync(id);
+            if (product == null)
+                return;
+            _Context.Products.Remove(product);
             await _Context.SaveChangesAsync();
         }
     }

@@ -39,5 +39,45 @@ namespace ECommerce.Application.Services
                 StockQuantity = x.StockQuantity
             }).ToList();
         }
+        public async Task<ProductDto?> GetByIdAsync(int id)
+        {
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null)
+                return null;
+            return new ProductDto
+            {
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                StockQuantity = product.StockQuantity
+            };
+        }
+        public async Task<ProductDto> UpdateAsync(int id, CreateProductDto dto)
+        {
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null)
+                return null;
+            product.Name = dto.Name;
+            product.Description = dto.Description;
+            product.Price = dto.Price;
+            product.StockQuantity = dto.StockQuantity;
+
+            await _repository.UpdateAsync(product);
+            return new ProductDto
+            {
+                Name = product.Name,
+                Description= product.Description,
+                Price = product.Price,
+                StockQuantity = product.StockQuantity
+            };
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null)
+                return false;
+            await _repository.DeleteAsync(id); 
+            return true;
+        }
     }
 }
