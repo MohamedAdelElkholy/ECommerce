@@ -1,5 +1,6 @@
 ﻿using ECommerce.Application.DTOs;
 using ECommerce.Application.Interfaces;
+using ECommerce.Application.Security;
 using ECommerce.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -21,12 +22,13 @@ namespace ECommerce.Application.Services
             var existingUser = await _repository.GetByEmailAsync(dto.Email);
             if (existingUser != null)
                 throw new Exception("Email already exists");
+            var hashedPassword = PasswordHasher.Hash(dto.Password);
 
             var user = new User
             {
                 FullName=dto.FullName,
                 Email = dto.Email,
-                PasswordHash=dto.Password,
+                PasswordHash= hashedPassword,
                 Role="Customer",
                 CreatedAt= DateTime.Now,
                 IsActive= true
@@ -102,6 +104,25 @@ namespace ECommerce.Application.Services
 
             await _repository.DeleteAsync(user);
             return true;
+        }
+        public async Task<UserDto?> LoginAsync(LoginDto dto)
+        {
+            var user = await _repository.GetByEmailAsync(dto.Email);
+            if (user == null) 
+                return null;
+            var isPasswordValid = PasswordHasher.Verify(dto.Password,user.PasswordHash);
+            if (!isPasswordValid)
+                return null;
+            return new UserDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role,
+                CreatedAt= user.CreatedAt,
+                IsActive = user.IsActive
+            };
+
         }
     }
 }

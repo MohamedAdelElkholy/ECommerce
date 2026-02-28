@@ -14,5 +14,6 @@ namespace ECommerce.Application.Interfaces
         Task<IEnumerable<UserDto>> GetAllAsync();
         Task<UserDto?> UpdateAsync(int id, UpdateUserDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<UserDto?> LoginAsync(LoginDto dto);
     }
 }
