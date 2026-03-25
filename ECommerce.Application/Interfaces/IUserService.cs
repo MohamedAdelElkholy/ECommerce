@@ -1,8 +1,5 @@
 ﻿using ECommerce.Application.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ECommerce.Application.Interfaces
@@ -14,6 +11,6 @@ namespace ECommerce.Application.Interfaces
         Task<IEnumerable<UserDto>> GetAllAsync();
         Task<UserDto?> UpdateAsync(int id, UpdateUserDto dto);
         Task<bool> DeleteAsync(int id);
-        Task<UserDto?> LoginAsync(LoginDto dto);
+        Task<object?> LoginAsync(LoginDto dto);
     }
 }

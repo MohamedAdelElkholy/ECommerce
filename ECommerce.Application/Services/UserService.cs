@@ -5,7 +5,6 @@ using ECommerce.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ECommerce.Application.Services
@@ -13,9 +12,12 @@ namespace ECommerce.Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
-        public UserService(IUserRepository repository)
+        private readonly ITokenService _tokenService;
+
+        public UserService(IUserRepository repository, ITokenService tokenService)
         {
             _repository = repository;
+            _tokenService = tokenService;
         }
         public async Task<UserDto> CreateAsync(CreateUserDto dto)
         {
@@ -26,12 +28,12 @@ namespace ECommerce.Application.Services
 
             var user = new User
             {
-                FullName=dto.FullName,
+                FullName = dto.FullName,
                 Email = dto.Email,
-                PasswordHash= hashedPassword,
-                Role="Customer",
-                CreatedAt= DateTime.Now,
-                IsActive= true
+                PasswordHash = hashedPassword,
+                Role = "Customer",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
             };
 
             await _repository.AddAsync(user);
@@ -45,7 +47,6 @@ namespace ECommerce.Application.Services
                 CreatedAt = user.CreatedAt,
                 IsActive = user.IsActive
             };
-
         }
         public async Task<UserDto?> GetByIdAsync(int id)
         {
@@ -66,20 +67,23 @@ namespace ECommerce.Application.Services
         public async Task<IEnumerable<UserDto>> GetAllAsync()
         {
             var users = await _repository.GetAllAsync();
-            return users.Select(User => new UserDto 
-            { 
-                Id = User.Id,
-                FullName = User.FullName,
-                Email = User.Email,
-                Role = User.Role,
-                CreatedAt = User.CreatedAt,
-                IsActive = User.IsActive
+
+            return users.Select(user => new UserDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt,
+                IsActive = user.IsActive
             });
         }
         public async Task<UserDto?> UpdateAsync(int id, UpdateUserDto dto)
         {
             var user = await _repository.GetByIdAsync(id);
-            if (user == null) return null;
+
+            if (user == null)
+                return null;
 
             user.FullName = dto.FullName;
             user.Role = dto.Role;
@@ -99,30 +103,40 @@ namespace ECommerce.Application.Services
         public async Task<bool> DeleteAsync(int id)
         {
             var user = await _repository.GetByIdAsync(id);
-            if(user == null) 
-                return true;
+
+            if (user == null)
+                return false;
 
             await _repository.DeleteAsync(user);
             return true;
         }
-        public async Task<UserDto?> LoginAsync(LoginDto dto)
+
+        public async Task<object?> LoginAsync(LoginDto dto)
         {
             var user = await _repository.GetByEmailAsync(dto.Email);
-            if (user == null) 
+            if (user == null)
                 return null;
-            var isPasswordValid = PasswordHasher.Verify(dto.Password,user.PasswordHash);
+
+            var isPasswordValid = PasswordHasher.Verify(dto.Password, user.PasswordHash);
+
             if (!isPasswordValid)
                 return null;
-            return new UserDto
-            {
-                Id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt= user.CreatedAt,
-                IsActive = user.IsActive
-            };
 
+            var token = _tokenService.GenerateToken(user);
+
+            return new
+            {
+                token,
+                user = new UserDto
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    Role = user.Role,
+                    CreatedAt = user.CreatedAt,
+                    IsActive = user.IsActive
+                }
+            };
         }
     }
 }

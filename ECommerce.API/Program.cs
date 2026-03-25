@@ -2,6 +2,7 @@ using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Infrastructure.Persistence;
 using ECommerce.Infrastructure.Repositories;
+using ECommerce.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 
